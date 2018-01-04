@@ -1,4 +1,3 @@
-from __future__ import print_function
 import httplib2
 import os
 
@@ -61,9 +60,12 @@ class CrispyCalendar:
             orderBy='startTime').execute()
         events = eventsResult.get('items', [])
 
-        if not events:
-            print('No upcoming events found.')
+        formatted_events = []
+
         for event in events:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            print(start)
-            print("    {} - {}".format(event['summary'], event.get('location', '')))
+            formatted_events.append({'start':event['start'].get('dateTime', event['start'].get('date')),
+                                     'summary': event['summary'],
+                                     'location': event.get('location', '')})
+
+        return formatted_events
+            
