@@ -2,21 +2,25 @@ import googlemaps
 import json
 import os
 
-gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
+class CrispyMaps:
+    
+    ORIGIN_ADDR = '1010 Brookview Drive, Pennsburg, PA'
 
-ORIGIN_ADDR = 'Pennsburg, PA'
-DEST_ADDR = 'New York City,NY'
+    def __init__(self):
+        self.gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
 
-matrix = gmaps.distance_matrix(ORIGIN_ADDR, DEST_ADDR, mode='driving')
+    def get_driving_time(self, destination):
+        matrix = self.gmaps.distance_matrix(self.ORIGIN_ADDR, destination, mode='driving')
 
-rows = matrix.get('rows', [])
+        rows = matrix.get('rows', [])
 
-if rows:
-    elements = rows[0].get('elements', [])
+        if rows:
+            elements = rows[0].get('elements', [])
 
-    if elements:
-        duration_text = elements[0]['duration']['text']
-        duration_seconds = elements[0]['duration']['value']
+            if elements:
+                duration_text = elements[0]['duration']['text']
+                duration_seconds = elements[0]['duration']['value']
 
-        print("Travel time from {} to {} is {}".format(ORIGIN_ADDR, DEST_ADDR, duration_text))
-
+                return {'seconds': duration_seconds, 'text': duration_text }
+        
+        return None
