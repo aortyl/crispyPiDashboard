@@ -64,6 +64,7 @@ class CrispyCalendar:
 
         for event in events:
             formatted_events.append({'start':event['start'].get('dateTime', event['start'].get('date')),
+                                     'all_day': True if 'date' in event['start'] else False,
                                      'summary': event['summary'],
                                      'location': event.get('location', '')})
 
