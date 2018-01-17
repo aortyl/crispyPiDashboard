@@ -9,8 +9,11 @@ class CrispyMaps:
     def __init__(self):
         self.gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
 
-    def get_driving_time(self, destination):
-        matrix = self.gmaps.distance_matrix(self.ORIGIN_ADDR, destination, mode='driving')
+    def get_driving_time(self, destination, arrival_time):
+        matrix = self.gmaps.distance_matrix(self.ORIGIN_ADDR,
+                                            destination,
+                                            arrival_time= arrival_time,
+                                            mode='driving')
 
         rows = matrix.get('rows', [])
 

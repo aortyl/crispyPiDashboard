@@ -1,9 +1,23 @@
 from __future__ import print_function
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from dateutil import parser, relativedelta
+from time import mktime
 
 from crispy_calendar import CrispyCalendar
 from crispy_maps import CrispyMaps
+
+
+def epoch_to_datetime(epoch_timestamp):
+    return datetime.fromtimestamp(epoch_timestamp, tz=settings.TIMEZONE) if epoch_timestamp else None
+
+
+def datetime_to_epoch(dt):
+    """
+    :param dt: Can be a datetime or datetime.date object
+    :return: Integer representing the unix epoch timestamp
+    """
+    return int(mktime(dt.timetuple()))
+
 
 def main():
     """
@@ -18,8 +32,9 @@ def main():
         driving_time = None
         
         if not event['all_day'] and event['location']:
-            driving_time = cmaps.get_driving_time(event['location'])
             start_datetime = parser.parse(event['start'])
+            driving_time = cmaps.get_driving_time(event['location'],
+                                                 datetime_to_epoch(start_datetime))
             departure_datetime = start_datetime + relativedelta.relativedelta(seconds=-driving_time['seconds'])
             alert_datetime = departure_datetime + relativedelta.relativedelta(minutes=-15)
            
@@ -29,6 +44,6 @@ def main():
             print("    Driving time: {}".format(driving_time['text']))
             print("    Departure Time: {}".format(str(departure_datetime)))
 
-
+               
 if __name__ == '__main__':
     main()
