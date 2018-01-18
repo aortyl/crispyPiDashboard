@@ -6,6 +6,8 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
+from google.cloud import firestore
+
 import datetime
 
 class CrispyCalendar:
@@ -13,7 +15,8 @@ class CrispyCalendar:
     # at ~/.credentials/calendar-python-quickstart.json
     SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
     CLIENT_SECRET_FILE = 'client_secret.json'
-    APPLICATION_NAME = 'Google Calendar API Python Quickstart'
+    APPLICATION_NAME = 'Crispy Calendar'
+    DB = firestore.Client()
 
     def get_credentials(self):
         """Gets valid user credentials from storage.
@@ -63,10 +66,16 @@ class CrispyCalendar:
         formatted_events = []
 
         for event in events:
-            formatted_events.append({'start':event['start'].get('dateTime', event['start'].get('date')),
-                                     'all_day': True if 'date' in event['start'] else False,
-                                     'summary': event['summary'],
-                                     'location': event.get('location', '')})
+            crispy_event = {'id': event['id'],
+                            'start':event['start'].get('dateTime', event['start'].get('date')),
+                            'all_day': True if 'date' in event['start'] else False,
+                            'summary': event['summary'],
+                            'location': event.get('location', '')}
+
+            doc_ref = self.DB.collection('events').document(crispy_event['id'])
+            doc_ref.set(crispy_event)
+            
+            formatted_events.append(crispy_event)
 
         return formatted_events
             
