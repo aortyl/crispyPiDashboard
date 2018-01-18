@@ -16,7 +16,10 @@ class CrispyCalendar:
     SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
     CLIENT_SECRET_FILE = 'client_secret.json'
     APPLICATION_NAME = 'Crispy Calendar'
-    DB = firestore.Client()
+
+    def __init__(self):
+        self.db = firestore.Client()
+        
 
     def get_credentials(self):
         """Gets valid user credentials from storage.
@@ -72,7 +75,7 @@ class CrispyCalendar:
                             'summary': event['summary'],
                             'location': event.get('location', '')}
 
-            doc_ref = self.DB.collection('events').document(crispy_event['id'])
+            doc_ref = self.db.collection('events').document(crispy_event['id'])
             doc_ref.set(crispy_event)
             
             formatted_events.append(crispy_event)
