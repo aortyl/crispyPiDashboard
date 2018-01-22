@@ -40,6 +40,10 @@ class CrispyEvent:
         return self
 
 
+    def delete(self):
+        self.db.collection('events').document(self.data['id']).delete()
+
+
     def start_time_display(self):
         return epoch_to_datetime(self.data['start']).isoformat()
 
@@ -54,6 +58,7 @@ class CrispyEventService:
 
     def __init__(self):
         self.gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
+        self.db = firestore.Client()
 
 
     def get_calendar_credentials(self):
@@ -85,7 +90,17 @@ class CrispyEventService:
         return credentials
 
     def get_past_stored_events(self):
-        doc_ref = self.db.collection('events').where('start', '<', datetime_to_epoch(datetime.now()))
+        docs = self.db.collection('events') \
+            .where('start', '<', datetime_to_epoch(datetime.now())) \
+            .get()
+
+        for doc in docs:
+            yield CrispyEvent(doc.to_dict())
+
+
+    def delete_all_past_events(self):
+        for event in self.get_past_stored_events():
+            event.delete()
 
     def get_next_ten_events(self):
         """Shows basic usage of the Google Calendar API.
