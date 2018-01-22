@@ -17,15 +17,9 @@ from google.cloud import firestore
 
 class CrispyEvent:
 
-    def __init__(self, uid, start, all_day, summary, location):
+    def __init__(self, data):
         self.db = firestore.Client()
-        self.data = {}
-
-        self.data['id'] = uid
-        self.data['start'] = start
-        self.data['all_day'] = all_day
-        self.data['summary'] = summary
-        self.data['location'] = location
+        self.data = data
 
 
     def save(self):
@@ -93,11 +87,11 @@ class CrispyEventService:
         formatted_events = []
 
         for event in events:
-            c_event = CrispyEvent(uid=event['id'],
-                                  start=event['start'].get('dateTime', event['start'].get('date')),
-                                  all_day=True if 'date' in event['start'] else False,
-                                  summary=event['summary'],
-                                  location=event.get('location', '')).save()
+            c_event = CrispyEvent({'id':event['id'],
+                                  'start':event['start'].get('dateTime', event['start'].get('date')),
+                                  'all_day':True if 'date' in event['start'] else False,
+                                  'summary':event['summary'],
+                                  'location':event.get('location', '')}).save()
 
             formatted_events.append(c_event)
 
