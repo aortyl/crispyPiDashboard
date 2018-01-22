@@ -3,8 +3,6 @@ from datetime import date, datetime, timedelta
 from dateutil import parser, relativedelta
 from time import mktime
 
-from crispy_calendar import CrispyCalendar
-from crispy_maps import CrispyMaps
 from crispy_event_service  import CrispyEventService
 
 
