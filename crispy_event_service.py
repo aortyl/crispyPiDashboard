@@ -6,6 +6,7 @@ import httplib2
 from datetime import date, datetime, timedelta
 from dateutil import parser, relativedelta
 from time import mktime
+from pytz import timezone
 
 from apiclient import discovery
 from oauth2client import client
@@ -13,6 +14,17 @@ from oauth2client import tools
 from oauth2client.file import Storage
 
 from google.cloud import firestore
+
+def epoch_to_datetime(epoch_timestamp):
+    return datetime.fromtimestamp(epoch_timestamp, tz=timezone('US/Eastern')) if epoch_timestamp else None
+
+
+def datetime_to_epoch(dt):
+    """
+    :param dt: Can be a datetime or datetime.date object
+    :return: Integer representing the unix epoch timestamp
+    """
+    return int(mktime(dt.timetuple()))
 
 
 class CrispyEvent:
@@ -26,6 +38,11 @@ class CrispyEvent:
         doc_ref = self.db.collection('events').document(self.data['id'])
         doc_ref.set(self.data)
         return self
+
+
+    def start_time_display(self):
+        return epoch_to_datetime(self.data['start']).isoformat()
+
 
 class CrispyEventService:
     ORIGIN_ADDR = '1010 Brookview Drive, Pennsburg, PA'
@@ -67,6 +84,9 @@ class CrispyEventService:
             print('Storing credentials to ' + credential_path)
         return credentials
 
+    def get_past_stored_events(self):
+        doc_ref = self.db.collection('events').where('start', '<', datetime_to_epoch(datetime.now()))
+
     def get_next_ten_events(self):
         """Shows basic usage of the Google Calendar API.
 
@@ -88,7 +108,7 @@ class CrispyEventService:
 
         for event in events:
             c_event = CrispyEvent({'id':event['id'],
-                                  'start':event['start'].get('dateTime', event['start'].get('date')),
+                                  'start':datetime_to_epoch(parser.parse(event['start'].get('dateTime', event['start'].get('date')))),
                                   'all_day':True if 'date' in event['start'] else False,
                                   'summary':event['summary'],
                                   'location':event.get('location', '')}).save()
@@ -111,21 +131,9 @@ class CrispyEventService:
             if elements:
                 crispy_event.data['duration_text'] = elements[0]['duration']['text']
                 crispy_event.data['duration_seconds'] = elements[0]['duration']['value']
-                crispy_event.data['departure_datetime'] = parser.parse(crispy_event.data['start']) + relativedelta.relativedelta(seconds= -crispy_event.data['duration_seconds'])
+                crispy_event.data['departure_datetime'] = epoch_to_datetime(crispy_event.data['start']) + relativedelta.relativedelta(seconds= -crispy_event.data['duration_seconds'])
                 crispy_event.data['alert_datetime'] = crispy_event.data['departure_datetime'] + relativedelta.relativedelta(minutes=-15)
 
                 crispy_event.save()
 
         return crispy_event
-
-
-    def epoch_to_datetime(epoch_timestamp):
-        return datetime.fromtimestamp(epoch_timestamp, tz=settings.TIMEZONE) if epoch_timestamp else None
-
-
-    def datetime_to_epoch(dt):
-        """
-        :param dt: Can be a datetime or datetime.date object
-        :return: Integer representing the unix epoch timestamp
-        """
-        return int(mktime(dt.timetuple()))

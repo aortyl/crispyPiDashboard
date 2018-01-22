@@ -20,7 +20,7 @@ def main():
         if not event.data['all_day'] and event.data['location']:
             c_events.calculate_driving_times(event)
 
-        print(event.data['start'])
+        print(event.start_time_display())
         print("    {} - {}".format(event.data['summary'], event.data['location']))
         if event.data.get('duration_seconds', None):
             print("    Driving time: {}".format(event.data['duration_text']))
