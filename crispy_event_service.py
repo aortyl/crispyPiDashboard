@@ -60,6 +60,10 @@ class CrispyEventService:
         self.gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
         self.db = firestore.Client()
 
+        credentials = self.get_calendar_credentials()
+        http = credentials.authorize(httplib2.Http())
+        self.service = discovery.build('calendar', 'v3', http=http)
+
 
     def get_calendar_credentials(self):
         """Gets valid user credentials from storage.
@@ -102,22 +106,38 @@ class CrispyEventService:
         for event in self.get_past_stored_events():
             event.delete()
 
-    def get_next_ten_events(self):
-        """Shows basic usage of the Google Calendar API.
-
-        Creates a Google Calendar API service object and outputs a list of the next
-        10 events on the user's calendar.
-        """
-        credentials = self.get_calendar_credentials()
-        http = credentials.authorize(httplib2.Http())
-        service = discovery.build('calendar', 'v3', http=http)
-
+    def get_next_x_days_of_events(self, days):
         now = datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-        print('Getting the upcoming 10 events')
-        eventsResult = service.events().list(
-            calendarId='primary', timeMin=now, maxResults=10, singleEvents=True,
+        now_plus_days = (datetime.utcnow() + relativedelta.relativedelta(days=days)).isoformat() + 'Z'
+        print("Getting events for the next {} days".format(days))
+        event_results = self.service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            timeMax=now_plus_days,
+            singleEvents=True,
             orderBy='startTime').execute()
-        events = eventsResult.get('items', [])
+
+        return self.__process_google_calendar_event_results(event_results)
+
+
+    def get_next_x_events(self, count):
+        """
+        Gets the next X events from the calendar.
+        """
+        now = datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+        print("Getting the upcoming {} events".format(count))
+        events_result = self.service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            maxResults=count,
+            singleEvents=True,
+            orderBy='startTime').execute()
+
+        return self.__process_google_calendar_event_results(event_results)
+
+
+    def __process_google_calendar_event_results(self, g_event_results):
+        events = g_event_results.get('items', [])
 
         formatted_events = []
 
