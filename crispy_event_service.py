@@ -93,6 +93,14 @@ class CrispyEventService:
             print('Storing credentials to ' + credential_path)
         return credentials
 
+
+    def get_all_stored_events(self):
+        docs = self.db.collection('events').get()
+
+        for doc in docs:
+            yield CrispyEvent(doc.to_dict())
+
+
     def get_past_stored_events(self):
         docs = self.db.collection('events') \
             .where('start', '<', datetime_to_epoch(datetime.now())) \
