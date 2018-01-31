@@ -114,6 +114,14 @@ class CrispyEventService:
         for event in self.get_past_stored_events():
             event.delete()
 
+
+    # TODO - Need to figure out a better place/way to handle this logic
+    def refresh_10_days_of_events(self):
+        self.delete_all_past_events()
+        self.get_next_x_days_of_events(10)
+        return self.get_all_stored_events()
+
+
     def get_next_x_days_of_events(self, days):
         now = datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
         now_plus_days = (datetime.utcnow() + relativedelta.relativedelta(days=days)).isoformat() + 'Z'
@@ -134,7 +142,7 @@ class CrispyEventService:
         """
         now = datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
         print("Getting the upcoming {} events".format(count))
-        events_result = self.service.events().list(
+        events_results = self.service.events().list(
             calendarId='primary',
             timeMin=now,
             maxResults=count,
