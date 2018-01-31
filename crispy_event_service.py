@@ -95,7 +95,7 @@ class CrispyEventService:
 
 
     def get_all_stored_events(self):
-        docs = self.db.collection('events').get()
+        docs = self.db.collection('events').order_by('start').get()
 
         for doc in docs:
             yield CrispyEvent(doc.to_dict())
