@@ -3,6 +3,7 @@ kivy.require('1.10.1')
 
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.listview import ListView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -15,14 +16,32 @@ from kivy.uix.recycleview import RecycleView
 
 
 Builder.load_string('''
-<RV>:
-    viewclass: 'Label'
-    RecycleBoxLayout:
-        default_size: None, dp(56)
-        default_size_hint: 1, None
-        size_hint_y: None
-        height: self.minimum_height
-        orientation: 'vertical'
+<CustButton@Button>:
+    font_size: 16
+
+<EventScreen>:
+    id: eventscreen
+    events: events
+
+    BoxLayout:
+        spacing: 10
+        padding: 10
+
+        CustButton:
+            text: "Refresh"
+            on_press: eventscreen.button_refresh_events()
+
+    RecycleView:
+        id: events
+        viewclass: 'Label'
+        RecycleBoxLayout:
+            default_size: None, dp(56)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+
+
 ''')
 
 class RV(RecycleView):
@@ -39,41 +58,30 @@ class RV(RecycleView):
                                                        event.data['location'])})
 
 
-class EventScreen(GridLayout):
+class EventScreen(BoxLayout):
 
     def __init__(self, **kwargs):
-        self.crispy = CrispyEventService()
-
-        kwargs['cols'] = 2
         super(EventScreen, self).__init__(**kwargs)
-
-        refresh_events_button = Button(text='Refresh Events')
-        refresh_events_button.bind(on_press=self.button_refresh_events)
-        self.add_widget(refresh_events_button)
-
-        events = []
+        self.crispy = CrispyEventService()
+        self.events.data = []
 
         for event in self.crispy.get_all_stored_events():
-            events.append("""{}: {} {}""".format(event.start_time_display(),
+            self.events.data.append({'text': "{}: {} {}".format(event.start_time_display(),
                                                        event.data['summary'],
-                                                       event.data['location']))
-
-        self.event_list_view = ListView(item_strings=events)
-        self.add_widget(self.event_list_view)
+                                                       event.data['location'])})
 
 
-    def button_refresh_events(self, instance):
-        events = []
+    def button_refresh_events(self):
+        self.events.data = []
         for event in self.crispy.refresh_10_days_of_events():
-            events.append("""{}: {} {}""".format(event.start_time_display(),
+            self.events.data.append({'text': "{}: {} {}".format(event.start_time_display(),
                                                        event.data['summary'],
-                                                       event.data['location']))
-        self.event_list_view.item_strings = events
+                                                       event.data['location'])})
 
 class CrispyDashboard(App):
 
     def build(self):
-        return RV()
+        return EventScreen()
 
 
 if __name__ == '__main__':
