@@ -44,19 +44,6 @@ Builder.load_string('''
 
 ''')
 
-class RV(RecycleView):
-    def __init__(self, **kwargs):
-        super(RV, self).__init__(**kwargs)
-        self.crispy = CrispyEventService()
-
-        # self.data = [{'text': str(x)} for x in range(100)]
-        self.data = []
-
-        for event in self.crispy.get_all_stored_events():
-            self.data.append({'text': "{}: {} {}".format(event.start_time_display(),
-                                                       event.data['summary'],
-                                                       event.data['location'])})
-
 
 class EventScreen(BoxLayout):
 
