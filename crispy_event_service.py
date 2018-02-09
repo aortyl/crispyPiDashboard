@@ -3,6 +3,7 @@ import json
 import os
 import httplib2
 
+from collections import OrderedDict
 from datetime import date, datetime, timedelta
 from dateutil import parser, relativedelta
 from time import mktime
@@ -44,8 +45,12 @@ class CrispyEvent:
         self.db.collection('events').document(self.data['id']).delete()
 
 
-    def start_time_display(self):
-        return epoch_to_datetime(self.data['start']).isoformat()
+    def get_start_date_iso(self):
+        return epoch_to_datetime(self.data['start']).strftime('%Y-%m-%d')
+
+
+    def get_start_time_iso(self):
+        return epoch_to_datetime(self.data['start']).strftime('%I:%M %p')
 
 
 class CrispyEventService:
@@ -99,6 +104,19 @@ class CrispyEventService:
 
         for doc in docs:
             yield CrispyEvent(doc.to_dict())
+
+
+    def get_all_stored_time_series_events(self):
+        time_series_events = OrderedDict()
+        for event in self.get_all_stored_events():
+            date = event.get_start_date_iso()
+
+            if date in time_series_events:
+                time_series_events[date].append(event)
+            else:
+                time_series_events[date] = [event]
+
+        return time_series_events
 
 
     def get_past_stored_events(self):
@@ -182,8 +200,9 @@ class CrispyEventService:
             if elements:
                 crispy_event.data['duration_text'] = elements[0]['duration']['text']
                 crispy_event.data['duration_seconds'] = elements[0]['duration']['value']
-                crispy_event.data['departure_datetime'] = epoch_to_datetime(crispy_event.data['start']) + relativedelta.relativedelta(seconds= -crispy_event.data['duration_seconds'])
-                crispy_event.data['alert_datetime'] = crispy_event.data['departure_datetime'] + relativedelta.relativedelta(minutes=-15)
+                departure_datetime = epoch_to_datetime(crispy_event.data['start']) + relativedelta.relativedelta(seconds= -crispy_event.data['duration_seconds'])
+                crispy_event.data['departure_datetime'] = datetime_to_epoch(departure_datetime)
+                crispy_event.data['alert_datetime'] = datetime_to_epoch(departure_datetime + relativedelta.relativedelta(minutes=-15))
 
                 crispy_event.save()
 

@@ -53,15 +53,20 @@ class EventScreen(BoxLayout):
         self.events.data = []
 
         for event in self.crispy.get_all_stored_events():
-            self.events.data.append({'text': "{}: {} {}".format(event.start_time_display(),
+            self.events.data.append({'text': "{}: \n{} \n{}".format(event.get_start_date_iso(),
                                                        event.data['summary'],
                                                        event.data['location'])})
+
+        for date, events in self.crispy.get_all_stored_time_series_events().items():
+            print("{}:".format(date))
+            for event in events:
+                print("    {}".format(event.data['summary']))
 
 
     def button_refresh_events(self):
         self.events.data = []
         for event in self.crispy.refresh_10_days_of_events():
-            self.events.data.append({'text': "{}: {} {}".format(event.start_time_display(),
+            self.events.data.append({'text': "{}: \n{} \n{}".format(event.get_start_date_iso(),
                                                        event.data['summary'],
                                                        event.data['location'])})
 
