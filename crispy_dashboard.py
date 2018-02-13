@@ -50,12 +50,8 @@ class EventScreen(BoxLayout):
     def __init__(self, **kwargs):
         super(EventScreen, self).__init__(**kwargs)
         self.crispy = CrispyEventService()
-        self.events.data = []
 
-        for event in self.crispy.get_all_stored_events():
-            self.events.data.append({'text': "{}: \n{} \n{}".format(event.get_start_date_iso(),
-                                                       event.data['summary'],
-                                                       event.data['location'])})
+        self.build_events(self.crispy.get_all_stored_time_series_events)
 
         for date, events in self.crispy.get_all_stored_time_series_events().items():
             print("{}:".format(date))
@@ -64,11 +60,15 @@ class EventScreen(BoxLayout):
 
 
     def button_refresh_events(self):
+        self.build_events(self.crispy.refresh_10_days_of_events)
+
+
+    def build_events(self, event_yielding_method):
         self.events.data = []
-        for event in self.crispy.refresh_10_days_of_events():
-            self.events.data.append({'text': "{}: \n{} \n{}".format(event.get_start_date_iso(),
-                                                       event.data['summary'],
-                                                       event.data['location'])})
+        for date, events in event_yielding_method().items():
+            self.events.data.append({'text': date})
+            for event in events:
+                self.events.data.append({'text': event.get_display_description()})
 
 class CrispyDashboard(App):
 

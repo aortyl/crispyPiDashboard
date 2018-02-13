@@ -53,6 +53,10 @@ class CrispyEvent:
         return epoch_to_datetime(self.data['start']).strftime('%I:%M %p')
 
 
+    def get_display_description(self):
+        return "{} \n{}".format(self.data['summary'], self.data['location'])
+
+
 class CrispyEventService:
     ORIGIN_ADDR = '1010 Brookview Drive, Pennsburg, PA'
     # If modifying these scopes, delete your previously saved credentials
@@ -137,7 +141,7 @@ class CrispyEventService:
     def refresh_10_days_of_events(self):
         self.delete_all_past_events()
         self.get_next_x_days_of_events(10)
-        return self.get_all_stored_events()
+        return self.get_all_stored_time_series_events()
 
 
     def get_next_x_days_of_events(self, days):
