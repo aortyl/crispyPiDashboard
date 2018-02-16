@@ -17,7 +17,10 @@ from kivy.uix.recycleview import RecycleView
 
 Builder.load_string('''
 <CustButton@Button>:
-    font_size: 16
+    font_size: 24
+    size: 200, 100
+    size_hint: None, None
+    pos_hint: {'center_x': 0.5}
 
 <EventScreen>:
     id: eventscreen
@@ -26,10 +29,13 @@ Builder.load_string('''
     BoxLayout:
         spacing: 10
         padding: 10
+        orientation: 'vertical'
 
         CustButton:
             text: "Refresh"
             on_press: eventscreen.button_refresh_events()
+
+        Widget:
 
     RecycleView:
         id: events
